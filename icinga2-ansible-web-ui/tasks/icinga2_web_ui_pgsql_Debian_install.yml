@@ -1,8 +1,11 @@
 ---
 
-- name: Install PostgreSQL on Debian OS Family
-  apt: pkg=postgresql
+- name: Install PostgreSQL and psycopg2 on Debian OS Family
+  apt: pkg={{ item }}
        state=latest
+  with_items:
+  - postgresql
+  - python-psycopg2
 
 - name: Start PostgreSQL server
   service: name=postgresql
@@ -13,30 +16,41 @@
   postgresql_db: name={{ icinga2_web_db_dbuser }}
                  state=present
   register: icinga_db
+  sudo: yes
+  sudo_user: postgres
+  tags:
+    - postgres
 
 - name: Create Icinga Database User and configure Grants
   postgresql_user: name={{ icinga2_web_db_dbuser }}
               password={{ icinga2_web_db_dbuser }}
               state=present
-              priv="{{ icinga2_web_db_dbuser }}.*:GRANT,INSERT,SELECT,UPDATE,DELETE,DROP,CREATE VIEW,INDEX,EXECUTE"
+              db={{ icinga2_web_db_dbuser }}
+#              priv=GRANT,INSERT,SELECT,UPDATE,DELETE,DROP,CREATE,VIEW,INDEX,EXECUTE
+  sudo: yes
+  sudo_user: postgres
+  tags:
+    - postgres
 
 - name: Import IDO Schema on Icinga Database (only once)
   postgresql_db: name=icinga
                  state=import
                  target={{ icinga2_ido_pgsql_schema }}
   when: icinga_db.changed == true
+  sudo: yes
+  sudo_user: postgres
 
 - name: Configure Icinga2 Ido pgsql Feature
   template: src=ido-pgsql.conf.j2
             dest={{ icinga2_ido_pgsql_conf }}
             backup=no
-            owner={{ icinga2_web_db_dbuser }}
-            group={{ icinga2_web_db_dbuser }}
+            owner=nagios
+            group=nagios
             mode=0640
 
 - name: Configure pg_hba.conf
   template: src=pg_hba.conf.j2
-            dest={{ Icinga2_pg_hba_conf }}
+            dest={{ icinga2_pg_hba_conf }}
 
 - name: Enable Icinga2 Ido pgsql Feature
   command: "icinga2 feature enable ido-{{ icinga2_web_ui_ido }}"

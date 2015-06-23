@@ -29,7 +29,7 @@ icinga2_ido_pgsql_conf: "/etc/icinga2/features-available/ido-pgsql.conf"
 
 # FIXME: Get version automatically
 postgresql_version: "9.3"
-icinga2_hb_hba_conf: "/etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf"
+icinga2_pg_hba_conf: "/etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf"
 
 icinga2_ido_mysql_conf_global:
  - { directive: 'user = "icinga"' }
