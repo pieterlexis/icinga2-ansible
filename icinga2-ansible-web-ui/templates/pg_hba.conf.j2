@@ -1,0 +1,11 @@
+# icinga
+local   {{ icinga2_web_ds_user }}      {{ icinga2_web_ds_user }}                            md5
+host    {{ icinga2_web_ds_user }}      {{ icinga2_web_ds_user }}      127.0.0.1/32          md5
+host    {{ icinga2_web_ds_user }}      {{ icinga2_web_ds_user }}      ::1/128               md5
+
+# "local" is for Unix domain socket connections only
+local   all         all                               ident
+# IPv4 local connections:
+host    all         all         127.0.0.1/32          ident
+# IPv6 local connections:
+host    all         all         ::1/128               ident

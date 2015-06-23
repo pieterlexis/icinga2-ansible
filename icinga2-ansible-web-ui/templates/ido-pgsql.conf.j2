@@ -1,0 +1,9 @@
+# {{ ansible_managed }}
+
+library "db_ido_pgsql"
+
+object IdoPgsqlConnection "ido-pgsql" {
+{% for element in icinga2_ido_pgsql_conf_global %}
+   {{ element.directive }}
+{% endfor %}
+}

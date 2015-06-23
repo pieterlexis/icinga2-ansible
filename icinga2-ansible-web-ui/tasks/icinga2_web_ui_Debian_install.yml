@@ -1,0 +1,30 @@
+---
+- name: Add icinga web 2 PPA signing key
+  apt_key: url=http://packages.icinga.org/icinga.key state=present
+
+- name: Adds icinga web 2 PPA
+  apt_repository: repo='deb http://packages.icinga.org/ubuntu icinga-{{ansible_distribution_release}} main'
+
+- name: Install IDO {{ icinga2_web_ui_ido }} on Debian OS family
+  apt: pkg=icinga2-ido-{{ icinga2_web_ui_ido }}
+       update_cache=yes
+       state=latest
+       install_recommends=no
+
+- include: icinga2_web_ui_pgsql_Debian_install.yml
+  when: icinga2_web_ui_ido == "pqsql"
+
+- name: Install Icinga Web on Debian OS family
+  apt: pkg={{ item.package }}
+       state=latest
+       install_recommends=no
+  with_items: icinga2_web_ui_pkg
+
+
+- name: Start Nginx
+  service: name=nginx
+           state=started
+           enabled=yes
+
+- name: Icinga Web UI Installation finished (RH)
+  debug: msg="Login at http://IP/icinga-web with user root and password password"

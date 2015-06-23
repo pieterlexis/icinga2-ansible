@@ -19,13 +19,25 @@ icinga2_web_db_dbuser: "icinga_web"
 
 icinga2_ido_schema_version: "2.0.2"
 icinga2_ido_mysql_schema: "/usr/share/doc/icinga2-ido-mysql-{{ icinga2_ido_schema_version }}/schema/mysql.sql"
+icinga2_ido_pgsql_schema: "/usr/share/icinga2-ido-pgsql/schema/pgsql.sql"
 
 icinga2_web_mysql_schema_rh_7: "/usr/share/doc/icinga-web-1.11.1/schema/mysql.sql"
 icinga2_web_mysql_schema_rh_6: "/usr/share/doc/icinga-web-1.11.0/schema/mysql.sql"
 
 icinga2_ido_mysql_conf: "/etc/icinga2/features-available/ido-mysql.conf"
+icinga2_ido_pgsql_conf: "/etc/icinga2/features-available/ido-pgsql.conf"
+
+# FIXME: Get version automatically
+postgresql_version: "9.3"
+icinga2_hb_hba_conf: "/etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf"
 
 icinga2_ido_mysql_conf_global:
+ - { directive: 'user = "icinga"' }
+ - { directive: 'password = "icinga"' }
+ - { directive: 'host = "localhost"' }
+ - { directive: 'database = "icinga"' }
+
+icinga2_ido_pgsql_conf_global:
  - { directive: 'user = "icinga"' }
  - { directive: 'password = "icinga"' }
  - { directive: 'host = "localhost"' }
