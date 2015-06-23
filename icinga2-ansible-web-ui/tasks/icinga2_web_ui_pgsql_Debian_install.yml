@@ -10,20 +10,20 @@
            enabled=yes
 
 - name: Create a Database for Icinga
-  pssql_db: name={{ icinga2_web_db_dbuser }}
-            state=present
+  postgresql_db: name={{ icinga2_web_db_dbuser }}
+                 state=present
   register: icinga_db
 
 - name: Create Icinga Database User and configure Grants
-  pssql_user: name={{ icinga2_web_db_dbuser }}
+  postgresql_user: name={{ icinga2_web_db_dbuser }}
               password={{ icinga2_web_db_dbuser }}
               state=present
               priv="{{ icinga2_web_db_dbuser }}.*:GRANT,INSERT,SELECT,UPDATE,DELETE,DROP,CREATE VIEW,INDEX,EXECUTE"
 
 - name: Import IDO Schema on Icinga Database (only once)
-  pgsql_db: name=icinga
-            state=import
-            target={{ icinga2_ido_pgsql_schema }}
+  postgresql_db: name=icinga
+                 state=import
+                 target={{ icinga2_ido_pgsql_schema }}
   when: icinga_db.changed == true
 
 - name: Configure Icinga2 Ido pgsql Feature
@@ -35,8 +35,8 @@
             mode=0640
 
 - name: Configure pg_hba.conf
-  template: src=pg_hba.conf
-  dest={{ Icinga2_pg_hba_conf }}
+  template: src=pg_hba.conf.j2
+            dest={{ Icinga2_pg_hba_conf }}
 
 - name: Enable Icinga2 Ido pgsql Feature
   command: "icinga2 feature enable ido-{{ icinga2_web_ui_ido }}"
