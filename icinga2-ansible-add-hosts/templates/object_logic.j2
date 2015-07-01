@@ -8,7 +8,7 @@ object Host "{{ hostvars[item]['ansible_fqdn'] }}" {
   {% endif %}
   vars.os = "{{ hostvars[item]['ansible_system'] }}"
   vars.os_family = "{{ hostvars[item]['ansible_os_family'] }}"
-  vars.ssh_port = "{{ hostvars[item]['ansible_ssh_port'] }}"
+  vars.ssh_port = "{{ hostvars[item]['ansible_ssh_port'] | default(22)}}"
 
   # Here Goes Vars and check_command
 {% for key,value in host_attributes.iteritems() %}

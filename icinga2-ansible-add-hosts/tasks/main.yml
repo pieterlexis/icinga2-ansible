@@ -1,4 +1,5 @@
 ---
 # tasks file for icinga2-ansible-add-hosts
+- file: name={{icinga2_hosts_dir}} state=directory
 
 - include: icinga2_add_hosts.yml

@@ -49,6 +49,11 @@
             state=import
             target={{ icinga2_web_mysql_schema_deb }}
   when: icinga_web_db.changed == true
+
+- name: Add 'root' user as admin for Icinga Web
+  command: mysql --host=localhost --user={{icinga2_web_db_dbuser}} --password={{icinga2_web_db_dbpassword}} -e 'insert into icingaweb_user values("root", 1, "$1$BE0zn0ub$/42XVp/prTF5sv2apwWkD1", TIMESTAMP(NOW()), TIMESTAMP(NOW()));' {{icinga2_web_db_dbdatabase}}
+  when: icinga_web_db.changed == true
+
 - name: Install Apache configuration
   template: src=icingaweb2.conf
             dest=/etc/apache2/sites-enabled/icingaweb2.conf
@@ -76,19 +81,11 @@
            enabled=yes
   when: icinga2_web_install_apache == true
 
-- name: Add a group icingaweb2
-  group: name=icingaweb2 system=yes
-
-- name: Add www-data to icingaweb2
-  user: name='www-data' groups='icingaweb2' append=yes
-
-- name: Initialize /etc/icingaweb2 directory
-  command: icingacli setup config directory --group icingaweb2
-  args:
-    creates: /etc/icingaweb2
+- name: Add /etc/icingaweb2 directory
+  file: name=/etc/icingaweb2 group=www-data state=directory mode=2770
 
 - name: Add configs for icingaweb2
-  template: src=icingaweb2/{{item}}.j2 dest=/etc/icingaweb2/{{item}} mode=660 group=icingaweb2
+  copy: src=icingaweb2/{{item}} dest=/etc/icingaweb2/{{item}} mode=0660 group=www-data force=no
   with_items:
     - authentication.ini
     - config.ini
