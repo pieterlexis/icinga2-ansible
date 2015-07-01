@@ -1,49 +1,96 @@
 ---
-- name: Add icinga web 2 PPA signing key
+- name: Add icinga web 2 signing key
   apt_key: url=http://packages.icinga.org/icinga.key state=present
 
-- name: Adds icinga web 2 PPA
-  apt_repository: repo='deb http://packages.icinga.org/ubuntu icinga-{{ansible_distribution_release}} main'
+- name: Adds icinga web 2 repository
+  apt_repository: repo='deb http://packages.icinga.org/{{ ansible_distribution | lower}} icinga-{{ansible_distribution_release}} main'
 
 - name: Install IDO {{ icinga2_web_ui_ido }} on Debian OS family
-  apt: pkg=icinga2-ido-{{ icinga2_web_ui_ido }}
+  apt: pkg={{ item }}
        update_cache=yes
        state=latest
        install_recommends=no
+  with_items:
+    - icinga2-ido-{{ icinga2_web_ui_ido }}
 
 - include: icinga2_web_ui_pgsql_Debian_install.yml
   when: icinga2_web_ui_ido == "pgsql"
 
+- include: icinga2_web_ui_mysql_Debian_install.yml
+  when: icinga2_web_ui_ido == "mysql"
+
+- name: Enable Icinga2 Ido {{ icinga2_web_ui_ido }} Feature
+  command: "icinga2 feature enable ido-{{ icinga2_web_ui_ido }}"
+  register: features_result
+  changed_when: "'for these changes to take effect' in features_result.stdout"
+  notify:
+   - restart icinga2
+
 - name: Install Icinga Web on Debian OS family
-  apt: pkg=icingaweb2
+  apt: pkg={{ item }}
        state=latest
        install_recommends=no
+  with_items:
+    - icingaweb2
+    - icingaweb2-module-setup
 
+- name: Create a Database for Icinga Web
+  mysql_db: name={{icinga2_web_db_dbdatabase}} state=present
+  register: icinga_web_db
+
+- name: Create Icinga Web Database User and configure Grants
+  mysql_user: name={{icinga2_web_db_dbuser}}
+              password={{icinga2_web_db_dbpassword}}
+              state=present
+              priv="{{icinga2_web_db_dbdatabase}}.*:GRANT,INSERT,SELECT,UPDATE,DELETE,DROP,CREATE VIEW,INDEX,EXECUTE"
+
+- name: Import Icinga Web Schema on Icinga Web Database (only once)
+  mysql_db: name={{icinga2_web_db_dbdatabase}}
+            state=import
+            target={{ icinga2_web_mysql_schema_deb }}
+  when: icinga_web_db.changed == true
 - name: Install Apache configuration
   template: src=icingaweb2.conf
             dest=/etc/apache2/sites-enabled/icingaweb2.conf
             backup=no
+  when: icinga2_web_install_apache
 
 - name: Install Apache
   apt: pkg={{ item }}
        state=latest
        install_recommends=no
   with_items:
-  - apache2
-  - libapache2-mod-php5
+    - apache2
+    - libapache2-mod-php5
+  when: icinga2_web_install_apache == true
 
-- name: Symlink Icinga workaround
-  file: src=/usr/share/php/Icinga
-        dest=/usr/share/icingaweb2/public/Icinga
-        state=link
-
+# - name: Symlink Icinga workaround
+#   file: src=/usr/share/php/Icinga
+#         dest=/usr/share/icingaweb2/public/Icinga
+#         state=link
+#   when: icinga2_web_install_apache
+#
 - name: Start Apache
   service: name=apache2
            state=started
            enabled=yes
+  when: icinga2_web_install_apache == true
 
-- name: UI Installation finished (RH)
-  debug: msg="{{ icinga2_web_ui_ido }}"
+- name: Add a group icingaweb2
+  group: name=icingaweb2 system=yes
 
-- name: Icinga Web UI Installation finished (RH)
-  debug: msg="Login at https://icinga2.badpacket.in with user root and password password"
+- name: Add www-data to icingaweb2
+  user: name='www-data' groups='icingaweb2' append=yes
+
+- name: Initialize /etc/icingaweb2 directory
+  command: icingacli setup config directory --group icingaweb2
+  args:
+    creates: /etc/icingaweb2
+
+- name: Add configs for icingaweb2
+  template: src=icingaweb2/{{item}}.j2 dest=/etc/icingaweb2/{{item}} mode=660 group=icingaweb2
+  with_items:
+    - authentication.ini
+    - config.ini
+    - resources.ini
+    - roles.ini

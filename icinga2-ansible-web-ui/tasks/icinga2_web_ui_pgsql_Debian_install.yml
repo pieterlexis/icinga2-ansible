@@ -51,10 +51,3 @@
 - name: Configure pg_hba.conf
   template: src=pg_hba.conf.j2
             dest={{ icinga2_pg_hba_conf }}
-
-- name: Enable Icinga2 Ido pgsql Feature
-  command: "icinga2 feature enable ido-{{ icinga2_web_ui_ido }}"
-  register: features_result
-  changed_when: "'for these changes to take effect' in features_result.stdout"
-  notify:
-   - restart icinga2
