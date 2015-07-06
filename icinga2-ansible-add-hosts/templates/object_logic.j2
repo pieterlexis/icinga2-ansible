@@ -3,6 +3,9 @@
 object Host "{{ hostvars[item]['ansible_fqdn'] }}" {
   import "generic-host"
   address = "{{ hostvars[item]['ansible_default_ipv4']['address'] }}"
+  {% if hostvars[item]['ansible_default_ipv6']['address'] | defined %}
+  address = "{{ hostvars[item]['ansible_default_ipv6']['address'] }}"
+  {% endif %}
   vars.os = "{{ hostvars[item]['ansible_system'] }}"
   vars.os_family = "{{ hostvars[item]['ansible_os_family'] }}"
   vars.ssh_port = "{{ hostvars[item]['ansible_ssh_port'] }}"

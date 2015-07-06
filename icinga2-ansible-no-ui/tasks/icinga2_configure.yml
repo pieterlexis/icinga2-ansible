@@ -6,7 +6,7 @@
             owner=root
             group=root
             mode=0644
-  notify: 
+  notify:
    - restart icinga2
 
 - name: Copy Check Commands Configuration
@@ -16,5 +16,15 @@
             owner=root
             group=root
             mode=0644
-  notify: 
+  notify:
+   - restart icinga2
+
+- name: Copy Zones Configuration
+  template: src=icinga2_check_commands.j2
+            dest={{ icinga2_conf_d }}/zones.conf
+            backup=yes
+            owner=root
+            group=root
+            mode=0644
+  notify:
    - restart icinga2

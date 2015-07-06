@@ -1,0 +1,19 @@
+# {{ ansible_managed }}
+
+{% if icinga2_conf_zones is defined %}
+{% for zone,vars in icinga2_conf_zones['zones'].iteritems() %}
+object Zone "{{zone}}" {
+{% for element in vars %}
+  {{element}}
+{% endfor %}
+}
+{% endfor %}
+
+{% for endpoint,vars in icinga2_conf_zones['endpoints'].iteritems() %}
+object Endpoint "{{endpoint}}" {
+{% for element in vars %}
+  {{element}}
+{% endfor %}
+}
+{% endfor %}
+{% endif %}
