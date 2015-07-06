@@ -9,6 +9,14 @@
   notify:
    - restart icinga2
 
+- name: Enable features
+  command: icinga2 feature enable {{item}}
+  register: features_result
+  changed_when: "'for these changes to take effect' in features_result.stdout"
+  with_items: icinga2_features
+  notify:
+    - restart icinga2
+
 - name: Copy Check Commands Configuration
   template: src=icinga2_check_commands.j2
             dest={{ icinga2_conf_d }}/check_commands.conf

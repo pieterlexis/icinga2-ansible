@@ -1,13 +1,21 @@
 # {{ ansible_managed }}
 
-{% for key,value in check_commands.iteritems() %}
+{% for key in check_commands.keys() %}
 object CheckCommand "{{ key }}" {
   import "plugin-check-command"
 
   command = [
     PluginDir + "/{{ key }}",
-    {{ value }}
   ]
+  {% if check_commands[key]['arguments'] %}
+  arguments = {
+  {% for argname, argval in check_commands[key]['arguments'].iteritems() %}
+    "{{ argname }}" = "{{argval}}"{% if not loop.last %},
+{% endif %}
+  {% endfor %}
+
+  }
+{% endif %}
 }
 
 {% endfor %}
