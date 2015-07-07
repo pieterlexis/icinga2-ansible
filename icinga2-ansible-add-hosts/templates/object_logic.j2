@@ -3,8 +3,8 @@
 object Host "{{ hostvars[item]['ansible_fqdn'] }}" {
   import "generic-host"
   address = "{{ hostvars[item]['ansible_default_ipv4']['address'] }}"
-  {% if hostvars[item]['ansible_default_ipv6']['address'] | defined %}
-  address = "{{ hostvars[item]['ansible_default_ipv6']['address'] }}"
+  {% if hostvars[item]['ansible_default_ipv6']['address'] is defined and not hostvars[item]['ansible_default_ipv6']['address'].startswith('fe80') %}
+  address6 = "{{ hostvars[item]['ansible_default_ipv6']['address'].split('%')[0] }}"
   {% endif %}
   vars.os = "{{ hostvars[item]['ansible_system'] }}"
   vars.os_family = "{{ hostvars[item]['ansible_os_family'] }}"

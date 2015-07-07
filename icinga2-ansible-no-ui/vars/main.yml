@@ -27,6 +27,7 @@ icinga2_yum:
  - { package: "nagios-plugins-all" }
 
 icinga2_main_conf: "/etc/icinga2/icinga2.conf"
+icinga2_zones_conf: "/etc/icinga2/zones.conf"
 icinga2_conf_d: "/etc/icinga2/conf.d"
 
 icinga2_conf_global:

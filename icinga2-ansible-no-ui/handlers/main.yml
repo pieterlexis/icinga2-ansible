@@ -1,6 +1,12 @@
 ---
 # handlers file for icinga2-ansible-no-ui
 - name: restart icinga2
+  command: icinga2 daemon --validate
+  register: icinga2_validate
+  changed_when: icinga2_validate.rc == 0
+  notify: actually restart icinga2
+
+- name: actually restart icinga2
   service: name=icinga2
            state=restarted
            enabled=yes
